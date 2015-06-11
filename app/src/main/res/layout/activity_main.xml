@@ -21,14 +21,26 @@
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Connect"
+        android:id="@+id/btnConnect"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentBottom="false"
+        android:layout_below="@+id/textView"
+        android:onClick="btnConnect"
+        />
+
+    <Button
         android:id="@+id/btnDownload"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView"
         android:onClick="btnDownload"
-        android:text="Download"/>
+        android:text="Download"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/textView"
+        android:layout_toRightOf="@+id/btnConnect"/>
 
     <ImageView
         android:id="@+id/imageView"
@@ -65,10 +77,23 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/scrollView"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"
         android:onClick="btnClearLog"
-        android:text="Clear Log"/>
+        android:text="Clear Log"
+        android:layout_below="@+id/textView"
+        android:layout_toRightOf="@+id/btnDownload"/>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="150dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Not Connected"
+        android:id="@+id/txtStatus"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_toRightOf="@+id/imageView"
+        android:layout_toEndOf="@+id/imageView"
+        android:padding="10dp"
+        android:gravity="center"/>
 
 </RelativeLayout>

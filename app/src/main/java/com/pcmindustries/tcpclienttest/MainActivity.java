@@ -2,10 +2,12 @@ package com.pcmindustries.tcpclienttest;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.content.Context;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -15,7 +17,6 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -30,26 +31,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.client.HttpClient;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Console;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -63,9 +55,13 @@ public class MainActivity extends ActionBarActivity {
     private ImageView imgView;
     private TextView txtLog;
     private TextView txtStatus;
+    private EditText txtDrillSite, txtShot, txtDepth;
+    private Button btnDownload;
     private boolean bConnected = false;
+    private boolean bDownloading = false;
     private Timer timer;
     private TimerTask timerTask;
+    Bitmap bmp;
 
     public static String getCurrentTimeStamp() {
         //SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
@@ -86,6 +82,10 @@ public class MainActivity extends ActionBarActivity {
         imgView = (ImageView) findViewById(R.id.imageView);
         txtLog = (TextView) findViewById(R.id.txtLog);
         txtStatus = (TextView) findViewById(R.id.txtStatus);
+        btnDownload = (Button) findViewById(R.id.btnDownload);
+        txtDrillSite = (EditText) findViewById(R.id.txtDrillSite);
+        txtShot = (EditText) findViewById(R.id.txtShot);
+        txtDepth = (EditText) findViewById(R.id.txtDepth);
 
         imgView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -177,8 +177,14 @@ public class MainActivity extends ActionBarActivity {
 
     public void btnDownload(View view) {
         imgView.setImageDrawable(null);
-        AsyncDownload runner = new AsyncDownload();
-        runner.execute();
+        // limit launches to 1 at a time
+        if (bDownloading != true) {
+            bDownloading = true;
+            AsyncDownload runner = new AsyncDownload();
+            runner.execute();
+        } else {
+            logTxt("THREAD already running..");
+        }
 
     }
 
@@ -186,6 +192,7 @@ public class MainActivity extends ActionBarActivity {
         txtLog.setText("");
         imgView.setImageDrawable(null);
     }
+
 
     @Override
     public void onBackPressed() {
@@ -216,8 +223,8 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(getApplicationContext(), "Connected to PCM-CAMERA device",
                         Toast.LENGTH_LONG).show();
                 // Change txtStatus to reflect that we are connected
-                bConnected = true;
-                txtStatus.setText("Connected");
+                //bConnected = true;
+                //txtStatus.setText("Connected");
                 Log.d(DEBUG_TAG, "WiFi ssid is : " + info.getSSID());
 
             } else {
@@ -236,6 +243,7 @@ public class MainActivity extends ActionBarActivity {
             startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
         }
 
+        bConnected = !bConnected;
     }
 
     public void logTxt(String string) {
@@ -248,7 +256,7 @@ public class MainActivity extends ActionBarActivity {
         // set a new timer
         timer = new Timer();
         initializeTimerTask();
-        timer.schedule(timerTask, 5000, 10000);
+        timer.schedule(timerTask, 1000, 2000);
 
     }
 
@@ -265,11 +273,17 @@ public class MainActivity extends ActionBarActivity {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        logTxt("Timer Ran");
+                        //logTxt("Timer Ran");
                         if (bConnected == true) {
                             txtStatus.setText("Connected");
+                            txtStatus.setTextColor(Color.BLACK);
+                            txtStatus.setBackgroundColor(Color.GREEN);
+                            btnDownload.setEnabled(true);
                         } else {
                             txtStatus.setText("Not Connected");
+                            txtStatus.setTextColor(Color.WHITE);
+                            txtStatus.setBackgroundColor(Color.RED);
+                            btnDownload.setEnabled(false);
                         }
                     }
                 });
@@ -289,14 +303,48 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
         if (timer == null) {
             startTimer();
-            logTxt("Timer was null in onresume");
+            //logTxt("Timer was null in onresume");
         }
-        logTxt("Timer Resumed");
+        //logTxt("Timer Resumed");
+    }
+
+    public void btnSave(View view) {
+        // Save the file to SD Card
+        // TODO - create a folder for the program - then each drilling site get's a folder, etc
+        // save the bitmap in the imageview (as I will have overlayed some text on the image)
+        // filename format to use [drill site]-[shot#]-[depth]-[date].jpg
+        // write to SD CARD
+        boolean mExternalStorageAvailable = false;
+        boolean mExternalStorageWritable = false;
+
+        String state = Environment.getExternalStorageState();
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File file = new File(path, "compass.jpg");
+
+        Log.d("PCM", "Starting to Write to SD Card");
+        logTxt("start writing to SD card");
+
+        path.mkdirs();
+
+        FileOutputStream fos = null;
+
+        try {
+            fos = new FileOutputStream(file, false);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+
+            fos.flush();
+            fos.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        logTxt("Wrote to SD card");
     }
 
     private class AsyncDownload extends AsyncTask<Void, String, Boolean> {
 
-        Bitmap bmp;
+
 
         @Override
         protected Boolean doInBackground(Void... params) {
@@ -333,7 +381,6 @@ public class MainActivity extends ActionBarActivity {
                 }
                 publishProgress("buffer read into int array");
 
-                // Now write out to SD Card
 
                 // Create Bitmap from raw data that we received
                 bmp = Bitmap.createBitmap(800, 600, Bitmap.Config.ARGB_8888);
@@ -354,25 +401,7 @@ public class MainActivity extends ActionBarActivity {
                 publishProgress("bitmap set");
 
 
-                // write to SD CARD
-                boolean mExternalStorageAvailable = false;
-                boolean mExternalStorageWritable = false;
 
-                String state = Environment.getExternalStorageState();
-                File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-                File file = new File(path, "compass.jpg");
-
-                Log.d("PCM", "Starting to Write to SD Card");
-                publishProgress("start writing to SD card");
-
-                path.mkdirs();
-
-                FileOutputStream fos = new FileOutputStream(file, false);
-                bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-
-                fos.flush();
-                fos.close();
-                publishProgress("Wrote to SD card");
                 bResult = true;
 
 
@@ -403,10 +432,28 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected void onPostExecute(Boolean bSuccess) {
             if (bSuccess) {
+                // write text into bitmap as well
+                Canvas canvas = new Canvas(bmp);
+
+                Paint paint = new Paint();
+                paint.setColor(Color.WHITE);
+                paint.setStrokeWidth(12);
+                paint.setTextSize(30);
+                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
+                //canvas.drawBitmap(bmp,0,0,paint);
+                SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MM-yyyy HH:mm");//dd/MM/yyyy
+                Date now = new Date();
+                String strDate = sdfDate.format(now);
+                canvas.drawText(strDate,10,30,paint);
+                canvas.drawText(txtDrillSite.getText().toString(), 10,60,paint);
+                canvas.drawText("Shot # " + txtShot.getText().toString(), 10,90,paint);
+                canvas.drawText("Depth : " + txtDepth.getText().toString(), 10,120,paint);
+
                 imgView.setImageBitmap(bmp);
             } else {
                 imgView.setImageDrawable(null);
             }
+            bDownloading = false;
         }
     }
 }

@@ -21,26 +21,48 @@
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <Button
+        android:id="@+id/btnConnect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Connect"
-        android:id="@+id/btnConnect"
+        android:layout_alignParentBottom="false"
         android:layout_alignParentLeft="false"
         android:layout_alignParentTop="false"
-        android:layout_alignParentBottom="false"
         android:layout_below="@+id/textView"
         android:onClick="btnConnect"
+        android:text="Connect"
         />
 
     <Button
         android:id="@+id/btnDownload"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="btnDownload"
-        android:text="Download"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/textView"
-        android:layout_toRightOf="@+id/btnConnect"/>
+        android:layout_centerHorizontal="true"
+        android:layout_toRightOf="@+id/btnConnect"
+        android:onClick="btnDownload"
+        android:text="Download"/>
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_toRightOf="@+id/btnDownload"
+        android:onClick="btnSave"
+        android:text="Save"/>
+
+    <Button
+        android:id="@+id/btnClearLog"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"
+        android:layout_below="@+id/textView"
+        android:layout_toRightOf="@+id/btnSave"
+        android:onClick="btnClearLog"
+        android:text="Clear Log"/>
 
     <ImageView
         android:id="@+id/imageView"
@@ -51,6 +73,55 @@
         android:layout_below="@+id/btnDownload"
         android:background="#ff828282"
         android:clickable="true"/>
+
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_toEndOf="@+id/imageView"
+        android:layout_toRightOf="@+id/imageView"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="Not Connected"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@+id/imageView"
+        android:layout_below="@+id/txtStatus"
+        android:layout_toRightOf="@+id/imageView"
+        android:orientation="vertical"
+        android:padding="0dp"
+        >
+
+        <EditText
+            android:id="@+id/txtDrillSite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:hint="Drilling Site"
+            android:textAppearance="?android:attr/textAppearanceSmallInverse"/>
+
+        <EditText
+            android:id="@+id/txtShot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:hint="Shot #"
+            android:textAppearance="?android:attr/textAppearanceSmallInverse"/>
+
+        <EditText
+            android:id="@+id/txtDepth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:hint="Depth"
+            android:textAppearance="?android:attr/textAppearanceSmallInverse"/>
+
+    </LinearLayout>
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -71,29 +142,5 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             />
     </ScrollView>
-
-    <Button
-        android:id="@+id/btnClearLog"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentRight="false"
-        android:onClick="btnClearLog"
-        android:text="Clear Log"
-        android:layout_below="@+id/textView"
-        android:layout_toRightOf="@+id/btnDownload"/>
-
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="150dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Not Connected"
-        android:id="@+id/txtStatus"
-        android:layout_alignTop="@+id/imageView"
-        android:layout_toRightOf="@+id/imageView"
-        android:layout_toEndOf="@+id/imageView"
-        android:padding="10dp"
-        android:gravity="center"/>
 
 </RelativeLayout>

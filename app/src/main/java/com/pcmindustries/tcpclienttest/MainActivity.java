@@ -1,10 +1,10 @@
 package com.pcmindustries.tcpclienttest;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
@@ -15,11 +15,13 @@ import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,10 +33,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,11 +57,14 @@ public class MainActivity extends ActionBarActivity {
     private TextView txtStatus;
     private EditText txtDrillSite, txtShot, txtDepth;
     private Button btnDownload;
+    private Button btnSave;
+    private Button btnFolders;
     private boolean bConnected = false;
     private boolean bDownloading = false;
     private Timer timer;
     private TimerTask timerTask;
-    Bitmap bmp;
+    Bitmap cleanbmp;
+    Bitmap textbmp;
 
     public static String getCurrentTimeStamp() {
         //SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
@@ -83,6 +86,8 @@ public class MainActivity extends ActionBarActivity {
         txtLog = (TextView) findViewById(R.id.txtLog);
         txtStatus = (TextView) findViewById(R.id.txtStatus);
         btnDownload = (Button) findViewById(R.id.btnDownload);
+        btnSave = (Button) findViewById(R.id.btnSave);
+        btnFolders = (Button) findViewById(R.id.btnFolders);
         txtDrillSite = (EditText) findViewById(R.id.txtDrillSite);
         txtShot = (EditText) findViewById(R.id.txtShot);
         txtDepth = (EditText) findViewById(R.id.txtDepth);
@@ -146,6 +151,63 @@ public class MainActivity extends ActionBarActivity {
                 }
 
         );
+
+        txtDrillSite.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (imgView.getDrawable() != null) {
+                    UpdateBitmapText();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        txtShot.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (imgView.getDrawable() != null) {
+                    UpdateBitmapText();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        txtDepth.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (imgView.getDrawable() != null) {
+                    UpdateBitmapText();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
 
         logTxt("Start timer from onCreate");
         startTimer();
@@ -285,6 +347,12 @@ public class MainActivity extends ActionBarActivity {
                             txtStatus.setBackgroundColor(Color.RED);
                             btnDownload.setEnabled(false);
                         }
+
+                        if (imgView.getDrawable()==null){
+                            btnSave.setEnabled(false);
+                        } else {
+                            btnSave.setEnabled(true);
+                        }
                     }
                 });
             }
@@ -321,25 +389,47 @@ public class MainActivity extends ActionBarActivity {
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File file = new File(path, "compass.jpg");
 
-        Log.d("PCM", "Starting to Write to SD Card");
-        logTxt("start writing to SD card");
 
-        path.mkdirs();
+        if (imgView.getDrawable() != null) {
+            Log.d("PCM", "Starting to Write to SD Card");
+            logTxt("start writing to SD card");
 
-        FileOutputStream fos = null;
+            path.mkdirs();
 
-        try {
-            fos = new FileOutputStream(file, false);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            FileOutputStream fos = null;
 
-            fos.flush();
-            fos.close();
+            try {
+                fos = new FileOutputStream(file, false);
+                textbmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
 
-        } catch (IOException e) {
-            e.printStackTrace();
+                fos.flush();
+                fos.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            logTxt("Wrote to SD card");
         }
+    }
 
-        logTxt("Wrote to SD card");
+    public void btnFolder(View view) {
+  /*      File mFile = new File("/storage/emulated/0/Pictures");
+       File[] list=mFile.listFiles();
+
+        for (File file : list) {
+            Log.d(DEBUG_TAG,file.getPath().toString());
+        }*/
+
+        // Open up new Activity we created with intent
+        //Intent intent = new Intent(this, ShowFilesActivity.class);
+        //startActivity(intent);
+
+        // This works for ASTRO file manager
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.parse("file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath() + "/"),
+                "*/*");
+        startActivity(intent);
     }
 
     private class AsyncDownload extends AsyncTask<Void, String, Boolean> {
@@ -383,8 +473,8 @@ public class MainActivity extends ActionBarActivity {
 
 
                 // Create Bitmap from raw data that we received
-                bmp = Bitmap.createBitmap(800, 600, Bitmap.Config.ARGB_8888);
-                bmp.eraseColor(Color.argb(255, 255, 0, 0));
+                cleanbmp = Bitmap.createBitmap(800, 600, Bitmap.Config.ARGB_8888);
+                cleanbmp.eraseColor(Color.argb(255, 255, 0, 0));
                 //bmp.setDensity(Bitmap.DENSITY_NONE);
 
                 for (int y = 0; y < height; y++) {
@@ -396,7 +486,7 @@ public class MainActivity extends ActionBarActivity {
 
                 }
 
-                bmp.setPixels(data, 0, 800, 0, 0, 800, 600);
+                cleanbmp.setPixels(data, 0, 800, 0, 0, 800, 600);
 //            bmp.eraseColor(Color.argb(255, 255, 0, 0));
                 publishProgress("bitmap set");
 
@@ -432,28 +522,40 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected void onPostExecute(Boolean bSuccess) {
             if (bSuccess) {
-                // write text into bitmap as well
-                Canvas canvas = new Canvas(bmp);
+                UpdateBitmapText();
 
-                Paint paint = new Paint();
-                paint.setColor(Color.WHITE);
-                paint.setStrokeWidth(12);
-                paint.setTextSize(30);
-                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
-                //canvas.drawBitmap(bmp,0,0,paint);
-                SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MM-yyyy HH:mm");//dd/MM/yyyy
-                Date now = new Date();
-                String strDate = sdfDate.format(now);
-                canvas.drawText(strDate,10,30,paint);
-                canvas.drawText(txtDrillSite.getText().toString(), 10,60,paint);
-                canvas.drawText("Shot # " + txtShot.getText().toString(), 10,90,paint);
-                canvas.drawText("Depth : " + txtDepth.getText().toString(), 10,120,paint);
-
-                imgView.setImageBitmap(bmp);
             } else {
                 imgView.setImageDrawable(null);
             }
             bDownloading = false;
         }
+    }
+
+    private void UpdateBitmapText() {
+        // write text into bitmap as well
+        //textbmp = Bitmap.createBitmap(800, 600, Bitmap.Config.ARGB_8888);
+        //textbmp.eraseColor(Color.RED);
+        textbmp = cleanbmp.copy(cleanbmp.getConfig(),true);
+
+        Canvas canvas = new Canvas(textbmp);
+
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(12);
+        paint.setTextSize(30);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
+        //canvas.drawBitmap(bmp,0,0,paint);
+        SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MM-yyyy HH:mm");//dd/MM/yyyy
+        Date now = new Date();
+        String strDate = sdfDate.format(now);
+        canvas.drawText(strDate,10,30,paint);
+        canvas.drawText(txtDrillSite.getText().toString(), 10,60,paint);
+        canvas.drawText("Shot # " + txtShot.getText().toString(), 10,90,paint);
+        canvas.drawText("Depth : " + txtDepth.getText().toString(), 10, 120, paint);
+
+        imgView.setImageBitmap(textbmp);
+
+        //logTxt("UPDATE bitmap text");
+
     }
 }

@@ -4,6 +4,8 @@ package com.pcmindustries.compassviewer;
  * Created by Paul C. Murdock on 6/15/2015.
  */
 public class FileList {
+
+    // a test
     public int thumbnail;
     public String filename;
 

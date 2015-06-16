@@ -1,4 +1,4 @@
-package com.pcmindustries.tcpclienttest;
+package com.pcmindustries.compassviewer;
 
 import android.content.Context;
 import android.content.Intent;
@@ -61,6 +61,7 @@ public class MainActivity extends ActionBarActivity {
     private Button btnFolders;
     private boolean bConnected = false;
     private boolean bDownloading = false;
+    private boolean b_isViewImageFullScreen;
     private Timer timer;
     private TimerTask timerTask;
     Bitmap cleanbmp;
@@ -95,10 +96,38 @@ public class MainActivity extends ActionBarActivity {
         imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Create a temporary jpeg in the [temp] subdirectory under [CompassViewer]
+                File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/CompassViewer/temp");
+                path.mkdirs();
+                File file = new File(path, "temp.jpg");
+
+
+
+                if (imgView.getDrawable() != null) {
+                    Log.d("PCM", "Starting to Write Temp to SD Card");
+                    logTxt("start writing TEMP to SD card");
+
+                    FileOutputStream fos = null;
+
+                    try {
+                        fos = new FileOutputStream(file, false);
+                        textbmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+
+                        fos.flush();
+                        fos.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    logTxt("Wrote TEMP to SD card");
+                }
+
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.parse("file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/compass.jpg"), "image/jpeg");
+                intent.setDataAndType(Uri.parse("file://" + path.getPath() + "/temp.jpg"), "image/jpeg");
                 startActivity(intent);
+
             }
         });
 
@@ -386,8 +415,10 @@ public class MainActivity extends ActionBarActivity {
         boolean mExternalStorageWritable = false;
 
         String state = Environment.getExternalStorageState();
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File file = new File(path, "compass.jpg");
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES +
+                "/CompassViewer/[" + txtDrillSite.getText() + "]");
+        File file = new File(path, "[" + txtDrillSite.getText() + "]-[shot-" + txtShot.getText() +
+            "]-[depth-" + txtDepth.getText() + "].jpg");
 
 
         if (imgView.getDrawable() != null) {
@@ -411,6 +442,8 @@ public class MainActivity extends ActionBarActivity {
 
             logTxt("Wrote to SD card");
         }
+
+        Toast.makeText(this, "File saved in " + path.getPath(), Toast.LENGTH_LONG).show();
     }
 
     public void btnFolder(View view) {

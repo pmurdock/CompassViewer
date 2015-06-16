@@ -1,4 +1,4 @@
-package com.pcmindustries.tcpclienttest;
+package com.pcmindustries.compassviewer;
 
 import android.app.Activity;
 import android.content.Context;

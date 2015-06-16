@@ -5,7 +5,6 @@ package com.pcmindustries.compassviewer;
  */
 public class FileList {
 
-    // a test - my dev branch only
     public int thumbnail;
     public String filename;
 

@@ -411,8 +411,6 @@ public class MainActivity extends ActionBarActivity {
         // save the bitmap in the imageview (as I will have overlayed some text on the image)
         // filename format to use [drill site]-[shot#]-[depth]-[date].jpg
         // write to SD CARD
-        boolean mExternalStorageAvailable = false;
-        boolean mExternalStorageWritable = false;
 
         String state = Environment.getExternalStorageState();
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES +
